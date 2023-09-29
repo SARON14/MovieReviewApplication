@@ -20,7 +20,7 @@ public class Review {
     @Column(name="movie_id")
     private Long movieId;
     @Column(name = "rating")
-    private Float rating;
+    private Integer rating;
     @Column(name = "comment")
     private String comment;
 }

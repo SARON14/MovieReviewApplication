@@ -1,14 +1,12 @@
 package et.com.movieReview.controller;
 
 import et.com.movieReview.constants.Endpoints;
-import et.com.movieReview.dto.ResponseDto.ResponseDTO;
 import et.com.movieReview.dto.RequestDto.ReviewRequestDto;
+import et.com.movieReview.dto.ResponseDto.ResponseDTO;
 import et.com.movieReview.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -22,8 +20,8 @@ public class ReviewController {
     public ResponseDTO<?> addReview(@Valid @RequestBody ReviewRequestDto payload){
         return reviewService.addReview(payload);
     }
-//    @GetMapping(value = Endpoints.GET_ADOPTION,produces = JSON)
-//    public ResponseDTO<?> getAdoption(){
-//        return adoptService.getAdoption();
-//    }
+    @GetMapping(value = Endpoints.GET_REVIEW_BY_USERID,produces = JSON)
+    public ResponseDTO<?> getReviewByUserId(@PathVariable Long userId){
+        return reviewService.getReviewByUserId(userId);
+    }
 }
