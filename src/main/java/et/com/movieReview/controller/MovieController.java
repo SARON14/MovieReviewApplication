@@ -2,6 +2,7 @@ package et.com.movieReview.controller;
 
 import et.com.movieReview.constants.Endpoints;
 import et.com.movieReview.dto.RequestDto.MovieRequestDto;
+import et.com.movieReview.dto.ResponseDto.MovieResponseDto;
 import et.com.movieReview.dto.ResponseDto.ResponseDTO;
 import et.com.movieReview.service.MovieService;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,8 @@ public class MovieController {
     private final MovieService movieService;
     private static final String JSON = MediaType.APPLICATION_JSON_VALUE;
 
-    @PostMapping(value = Endpoints.ADD_MOVIE, produces = JSON, consumes = JSON)
-    public ResponseDTO<?> addMovie(@ModelAttribute MovieRequestDto payload) {
+    @PostMapping(value = Endpoints.ADD_MOVIE, produces = JSON)
+    public MovieResponseDto addMovie(@ModelAttribute MovieRequestDto payload) {
         return movieService.addMovie(payload);
     }
 
@@ -37,14 +38,11 @@ public class MovieController {
                                       @RequestParam(required = false) Integer year) {
         List<Sort.Order> orders = new ArrayList<>();
         if (sort[0].contains(",")) {
-            // will sort more than 2 fields
-            // sortOrder="field, direction"
             for (String sortOrder : sort) {
                 String[] _sort = sortOrder.split(",");
                 orders.add(new Sort.Order(getSortDirection(_sort[1]), _sort[0]));
             }
         } else {
-            // sort=[field, direction]
             orders.add(new Sort.Order(getSortDirection(sort[1]), sort[0]));
         }
         return movieService.searchMovie(page, size, orders, title, year);

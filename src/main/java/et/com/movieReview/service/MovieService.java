@@ -2,10 +2,7 @@ package et.com.movieReview.service;
 
 import et.com.movieReview.constants.ApiMessages;
 import et.com.movieReview.dto.RequestDto.MovieRequestDto;
-import et.com.movieReview.dto.ResponseDto.MovieDetailResponseDto;
-import et.com.movieReview.dto.ResponseDto.ResponseDTO;
-import et.com.movieReview.dto.ResponseDto.MovieListResponseDto;
-import et.com.movieReview.dto.ResponseDto.SearchResponseDto;
+import et.com.movieReview.dto.ResponseDto.*;
 import et.com.movieReview.model.Movie;
 import et.com.movieReview.repository.MovieRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,18 +31,14 @@ public class MovieService {
     private final ApiMessages apiMessages = new ApiMessages();
     private final MovieRepository movieRepository;
 
-    public ResponseDTO<?> addMovie(MovieRequestDto payload) {
+    public MovieResponseDto addMovie(MovieRequestDto payload) {
         try {
-            List<String> photoUrlList = new ArrayList<>();
             String photoUrl = null;
             if (payload.getPoster() != null) {
-//                for (MultipartFile photo : payload.getPhotos()) {
-                photoUrl = saveUploadedFile(payload.getPoster());
-//                    if (photoUrl != null)
-//                        photoUrlList.add(photoUrl);
+                photoUrl = saveUploadedFile(payload.getPoster());;
                 }
-            return apiMessages.successMessageWithData(movieRepository.save(Movie.builder()
-                    .type(payload.getType())
+            Movie movie = Movie.builder()
+                    .title(payload.getTitle())
                     .year(payload.getYear())
                     .runTime(payload.getRuntime())
                     .genre(payload.getGenre())
@@ -56,7 +49,9 @@ public class MovieService {
                     .language(payload.getLanguage())
                     .type(payload.getType())
                     .poster(photoUrl)
-                    .build()));
+                    .build();
+            movieRepository.save(movie);
+            return MovieResponseDto.builder().id(movie.getId()).status("success").build();
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

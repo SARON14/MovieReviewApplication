@@ -2,8 +2,10 @@ package et.com.movieReview;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Configuration;
 
 @SpringBootApplication
+@Configuration
 public class MovieReviewApplication {
 
 	public static void main(String[] args) {
