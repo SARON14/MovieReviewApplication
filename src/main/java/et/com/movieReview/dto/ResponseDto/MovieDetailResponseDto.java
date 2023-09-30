@@ -25,6 +25,8 @@ public class MovieDetailResponseDto {
     private String genre;
     @JsonProperty("Director")
     private String director;
+    @JsonProperty("Writer")
+    private String writer;
     @JsonProperty("Actors")
     private String actors;
     @JsonProperty("Plot")
@@ -35,14 +37,14 @@ public class MovieDetailResponseDto {
     private String country;
     @JsonProperty("Awards")
     private String awards;
-    @JsonProperty("Awards")
+    @JsonProperty("Poster")
     private String poster;
     @JsonProperty("Metascore")
     private String metaScore;
     @JsonProperty("imdbRating")
-    private Float imdbRating;
+    private String imdbRating;
     @JsonProperty("imdbVotes")
-    private Integer imdbVotes;
+    private String imdbVotes;
     @JsonProperty("imdbID")
     private String imdbID;
     @JsonProperty("Type")

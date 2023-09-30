@@ -70,17 +70,6 @@ public class MovieService {
         return apiMessages.errorMessage("movie not found");
     }
 
-    public String saveUploadedFile(MultipartFile file) throws IOException {
-        if (!file.isEmpty()) {
-            String type = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
-            String fileName = "public/" + UUID.randomUUID() + "." + type;
-            byte[] bytes = file.getBytes();
-            Path path = Paths.get(fileName);
-            Files.write(path, bytes);
-            return fileName;
-        }
-        return null;
-    }
 
     public List<MovieListResponseDto> getMovies(SearchDto searchDto) {
         List<MovieListResponseDto> movieListResponseDtos = new ArrayList<>();
@@ -131,20 +120,6 @@ public class MovieService {
         return movieListResponseDtos;
     }
 
-    public String buildParam(SearchDto searchDto, String url) {
-
-        Map<String, String> params = new HashMap<>();
-        params.put("s", searchDto.getTitle());
-        if (searchDto.getYear() != null)
-            params.put("y", searchDto.getYear());
-        params.put("apikey", "a55e7284");
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            builder.queryParam(entry.getKey(), entry.getValue());
-        }
-        return builder.toUriString();
-    }
 
     public MovieDetailResponseDto getMovieDetailByImdbID(String imdbID) {
         HttpHeaders headers = new HttpHeaders();
@@ -158,6 +133,8 @@ public class MovieService {
         MovieDetailResponseDto movieDetailResponseDto = null;
         if (movieDetail != null) {
             movieDetailResponseDto = MovieDetailResponseDto.builder()
+                    .title(movieDetail.getTitle())
+                    .year(movieDetail.getYear())
                     .imdbID(movieDetail.getImdbID())
                     .actors(movieDetail.getActors())
                     .awards(movieDetail.getAwards())
@@ -167,6 +144,7 @@ public class MovieService {
                     .imdbRating(movieDetail.getImdbRating())
                     .imdbVotes(movieDetail.getImdbVotes())
                     .director(movieDetail.getDirector())
+                    .writer(movieDetail.getWriter())
                     .genre(movieDetail.getGenre())
                     .language(movieDetail.getLanguage())
                     .metaScore(movieDetail.getMetaScore())
@@ -184,7 +162,23 @@ public class MovieService {
         }
         return movieDetailResponseDto;
     }
-    public String buildParamForMovieDetail(String imdbID , String url) {
+
+    public String buildParam(SearchDto searchDto, String url) {
+
+        Map<String, String> params = new HashMap<>();
+        params.put("s", searchDto.getTitle());
+        if (searchDto.getYear() != null)
+            params.put("y", searchDto.getYear());
+        params.put("apikey", "a55e7284");
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            builder.queryParam(entry.getKey(), entry.getValue());
+        }
+        return builder.toUriString();
+    }
+
+    public String buildParamForMovieDetail(String imdbID, String url) {
 
         Map<String, String> params = new HashMap<>();
         params.put("i", imdbID);
@@ -195,5 +189,17 @@ public class MovieService {
             builder.queryParam(entry.getKey(), entry.getValue());
         }
         return builder.toUriString();
+    }
+
+    public String saveUploadedFile(MultipartFile file) throws IOException {
+        if (!file.isEmpty()) {
+            String type = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
+            String fileName = "public/" + UUID.randomUUID() + "." + type;
+            byte[] bytes = file.getBytes();
+            Path path = Paths.get(fileName);
+            Files.write(path, bytes);
+            return fileName;
+        }
+        return null;
     }
 }

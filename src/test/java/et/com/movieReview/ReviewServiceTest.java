@@ -45,60 +45,48 @@ public class ReviewServiceTest {
 
     @Test
     public void testAddReview_RecordExists() {
-        // Arrange
+
         ReviewRequestDto payload = new ReviewRequestDto();
         payload.setUserId(1L);
         payload.setMovieId(1L);
         payload.setRating(8);
         payload.setComment("Great movie!");
 
-        // Mock the userRepository.findById method to return a user
         User user = new User();
         Mockito.when(userRepository.findById(payload.getUserId())).thenReturn(Optional.of(user));
 
-        // Mock the movieRepository.findById method to return a movie
         Movie movie = new Movie();
         Mockito.when(movieRepository.findById(payload.getMovieId())).thenReturn(Optional.of(movie));
 
-        // Mock the reviewRepository.save method to return the saved review
         Review savedReview = new Review();
         Mockito.when(reviewRepository.save(Mockito.any())).thenReturn(savedReview);
 
-        // Act
         ResponseDTO<?> response = reviewService.addReview(payload);
 
-        // Assert
         Mockito.verify(userRepository, Mockito.times(1)).findById(payload.getUserId());
         Mockito.verify(movieRepository, Mockito.times(1)).findById(payload.getMovieId());
         Mockito.verify(reviewRepository, Mockito.times(1)).save(Mockito.any());
         Assertions.assertEquals(apiMessages.successMessageWithData(savedReview), response);
-        // You can also assert other properties of the response if needed
     }
 
     @Test
     public void testAddReview_RecordDoesNotExist() {
-        // Arrange
         ReviewRequestDto payload = new ReviewRequestDto();
         payload.setUserId(1L);
         payload.setMovieId(1L);
         payload.setRating(8);
         payload.setComment("Great movie!");
 
-        // Mock the userRepository.findById method to return an empty optional
         Mockito.when(userRepository.findById(payload.getUserId())).thenReturn(Optional.empty());
 
-        // Mock the movieRepository.findById method to return an empty optional
         Mockito.when(movieRepository.findById(payload.getMovieId())).thenReturn(Optional.empty());
 
-        // Act
         ResponseDTO<?> response = reviewService.addReview(payload);
 
-        // Assert
         Mockito.verify(userRepository, Mockito.times(1)).findById(payload.getUserId());
         Mockito.verify(movieRepository, Mockito.times(1)).findById(payload.getMovieId());
         Mockito.verify(reviewRepository, Mockito.never()).save(Mockito.any());
         Assertions.assertEquals(apiMessages.errorMessage("record doesn't exist"), response);
-        // You can also assert other properties of the response if needed
     }
 
     @Test
@@ -110,33 +98,26 @@ public class ReviewServiceTest {
         payload.setRating(15);
         payload.setComment("Great movie!");
 
-        // Mock the userRepository.findById method to return a user
         User user = new User();
         Mockito.when(userRepository.findById(payload.getUserId())).thenReturn(Optional.of(user));
 
-        // Mock the movieRepository.findById method to return a movie
         Movie movie = new Movie();
         Mockito.when(movieRepository.findById(payload.getMovieId())).thenReturn(Optional.of(movie));
 
-        // Act
         ResponseDTO<?> response = reviewService.addReview(payload);
 
-        // Assert
         Mockito.verify(userRepository, Mockito.times(1)).findById(payload.getUserId());
         Mockito.verify(movieRepository, Mockito.times(1)).findById(payload.getMovieId());
         Mockito.verify(reviewRepository, Mockito.never()).save(Mockito.any());
         Assertions.assertEquals(apiMessages.errorMessage("rating must be between 1 and 10"), response);
-        // You can also assert other properties of the response if needed
     }
     @Test
     public void testGetReviewByUserId_UserExists() {
         Long userId = 1L;
 
-        // Mock the userRepository.findById method to return a user
         User user = new User();
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        // Mock the reviewRepository.findAllByUserId method to return a list of reviews
         List<Review> reviewList = new ArrayList<>();
         Review review1 = new Review();
         review1.setUserId(userId);
@@ -154,10 +135,8 @@ public class ReviewServiceTest {
 
         Mockito.when(reviewRepository.findAllByUserId(userId)).thenReturn(reviewList);
 
-        // Act
         ResponseDTO<?> response = reviewService.getReviewByUserId(userId);
 
-        // Assert
         Mockito.verify(userRepository, Mockito.times(1)).findById(userId);
         Mockito.verify(reviewRepository, Mockito.times(1)).findAllByUserId(userId);
 
@@ -181,25 +160,19 @@ public class ReviewServiceTest {
                 .build();
 
         Assertions.assertEquals(apiMessages.successMessageWithData(expectedReviewResponse), response);
-        // You can also assert other properties of the response if needed
     }
 
     @Test
     public void testGetReviewByUserId_UserNotFound() {
-        // Arrange
         Long userId = 1L;
 
-        // Mock the userRepository.findById method to return an empty optional
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        // Act
         ResponseDTO<?> response = reviewService.getReviewByUserId(userId);
 
-        // Assert
         Mockito.verify(userRepository, Mockito.times(1)).findById(userId);
         Mockito.verify(reviewRepository, Mockito.never()).findAllByUserId(Mockito.anyLong());
 
         Assertions.assertEquals(apiMessages.errorMessage("user not found"), response);
-        // You can also assert other properties of the response if needed
     }
 }
