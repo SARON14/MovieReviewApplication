@@ -4,7 +4,6 @@ import et.com.movieReview.constants.Endpoints;
 import et.com.movieReview.dto.RequestDto.MovieRequestDto;
 import et.com.movieReview.dto.RequestDto.SearchDto;
 import et.com.movieReview.dto.ResponseDto.MovieListResponseDto;
-import et.com.movieReview.dto.ResponseDto.MovieResponseDto;
 import et.com.movieReview.dto.ResponseDto.ResponseDTO;
 import et.com.movieReview.service.MovieService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,7 @@ public class MovieController {
     private static final String JSON = MediaType.APPLICATION_JSON_VALUE;
 
     @PostMapping(value = Endpoints.ADD_MOVIE, produces = JSON)
-    public MovieResponseDto addMovie(@ModelAttribute MovieRequestDto payload) {
+    public ResponseDTO<?> addMovie(@ModelAttribute MovieRequestDto payload) {
         return movieService.addMovie(payload);
     }
 

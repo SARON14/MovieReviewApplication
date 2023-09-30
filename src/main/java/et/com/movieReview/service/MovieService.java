@@ -3,25 +3,25 @@ package et.com.movieReview.service;
 import et.com.movieReview.constants.ApiMessages;
 import et.com.movieReview.dto.RequestDto.MovieRequestDto;
 import et.com.movieReview.dto.RequestDto.SearchDto;
-import et.com.movieReview.dto.ResponseDto.MovieDetailResponseDto;
-import et.com.movieReview.dto.ResponseDto.MovieListResponseDto;
-import et.com.movieReview.dto.ResponseDto.MovieResponseDto;
-import et.com.movieReview.dto.ResponseDto.ResponseDTO;
+import et.com.movieReview.dto.ResponseDto.*;
 import et.com.movieReview.model.Movie;
 import et.com.movieReview.repository.MovieRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -29,15 +29,15 @@ import java.util.UUID;
 public class MovieService {
     private final ApiMessages apiMessages = new ApiMessages();
     private final MovieRepository movieRepository;
+    private final RestTemplate restTemplate;
 
-    public MovieResponseDto addMovie(MovieRequestDto payload) {
+    public ResponseDTO<?> addMovie(MovieRequestDto payload) {
         try {
             String photoUrl = null;
             if (payload.getPoster() != null) {
                 photoUrl = saveUploadedFile(payload.getPoster());
-                ;
             }
-            Movie movie = Movie.builder()
+            return apiMessages.successMessageWithData(movieRepository.save(Movie.builder()
                     .title(payload.getTitle())
                     .year(payload.getYear())
                     .runTime(payload.getRuntime())
@@ -49,9 +49,7 @@ public class MovieService {
                     .language(payload.getLanguage())
                     .type(payload.getType())
                     .poster(photoUrl)
-                    .build();
-            movieRepository.save(movie);
-            return MovieResponseDto.builder().id(movie.getId()).status("success").build();
+                    .build()));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -72,7 +70,7 @@ public class MovieService {
         return apiMessages.errorMessage("movie not found");
     }
 
-    private String saveUploadedFile(MultipartFile file) throws IOException {
+    public String saveUploadedFile(MultipartFile file) throws IOException {
         if (!file.isEmpty()) {
             String type = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
             String fileName = "public/" + UUID.randomUUID() + "." + type;
@@ -152,6 +150,7 @@ public class MovieService {
     public List<MovieListResponseDto> getMovies(SearchDto searchDto) {
         List<MovieListResponseDto> movieListResponseDtos = new ArrayList<>();
         List<Movie> movies = movieRepository.findAllByTitleAndYear(searchDto.getTitle(), searchDto.getYear(), searchDto.getLimit());
+        log.info("movies" +movies);
         movies.forEach(movie -> {
             MovieListResponseDto movieListResponseDto = MovieListResponseDto.builder()
                     .movieId(movie.getId())
@@ -163,6 +162,43 @@ public class MovieService {
                     .build();
             movieListResponseDtos.add(movieListResponseDto);
         });
+        Long remainingLimit = searchDto.getLimit() - movies.size();
+        if (remainingLimit>0) {
+            HttpHeaders headers = new HttpHeaders();
+            String url = "https://www.omdbapi.com/?s=Batman&page=2&apikey=a55e7284&";
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            String uriWithParam = buildParam(searchDto, url, remainingLimit+1);
+            ResponseEntity<SearchResponseDto> exchange =
+                    restTemplate.exchange(uriWithParam, HttpMethod.GET, entity, SearchResponseDto.class);
+            exchange.getBody().getMovieList().forEach(movieListResponseDto -> {
+                MovieListResponseDto movieListResponse =MovieListResponseDto.builder()
+                        .year(movieListResponseDto.getYear())
+                        .imdbID(movieListResponseDto.getImdbID())
+                        .poster(movieListResponseDto.getPoster())
+                        .title(movieListResponseDto.getTitle())
+                        .type(movieListResponseDto.getType())
+                        .movieId(null)
+                        .build();
+                movieListResponseDtos.add(movieListResponse);
+        });
+    }
         return movieListResponseDtos;
+}
+    public String buildParam(SearchDto searchDto, String url, Long remainingLimit){
+
+        Map<String, String> params = new HashMap<>();
+        if(searchDto.getTitle() !=null) params.put("title", searchDto.getTitle());
+        if(remainingLimit !=null)
+            params.put("limit", remainingLimit.toString());
+        else
+            params.put("limit","10");
+        if(searchDto.getYear() !=null) params.put("year", searchDto.getYear().toString());
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            builder.queryParam(entry.getKey(), entry.getValue());
+        }
+
+        return builder.toUriString();
     }
 }
