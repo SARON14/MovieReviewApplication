@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Builder
 public class MovieRequestDto {
     private String title;
-    private Integer year;
+    private String year;
     private String runtime;
     private String genre;
     private String director;

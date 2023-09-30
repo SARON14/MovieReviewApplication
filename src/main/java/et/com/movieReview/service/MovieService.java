@@ -58,7 +58,7 @@ public class MovieService {
     public ResponseDTO<?> getMovieDetail(long movieId) {
         Optional<Movie> movie = movieRepository.findById(movieId);
         if (movie.isPresent()) {
-            return apiMessages.successMessageWithData(MovieDetailResponseDto.builder()
+            return apiMessages.successMessageWithData(MovieResponseDto.builder()
                     .status("Success")
                     .movieId(movie.get().getId())
                     .title(movie.get().getTitle())
@@ -82,75 +82,10 @@ public class MovieService {
         return null;
     }
 
-
-    //    public ResponseDTO<?> searchMovie(String title, Integer year,Long limit) {
-//        List<MovieListResponseDto> movieListResponseDto = new ArrayList<>();
-//        List<Movie> movies = new ArrayList<>();
-//        MovieListResponseDto searchDto = new MovieListResponseDto();
-//        SearchResponseDto searchResponseDto = new SearchResponseDto();
-//        movies.forEach(movie -> {
-//            List<Movie> movieList;
-//            Integer movieCount;
-//            if (title != null && year == null ) {
-//                movieList= movieRepository.findByTitle(title);
-//                movieCount = movieRepository.countMovieByTitle(title);
-//                movies.addAll(movieList);
-//            }
-//            if (year != null && title == null) {
-//                movieList = movieRepository.findByYear(year);
-//                movieCount = movieRepository.countMovieByYear(year);
-//                movies.addAll(movieList);
-//            }
-//            if(year != null && title != null) {
-//                movieList= movieRepository.findByYearAndTitle(year, title);
-//                movieCount = movieRepository.countMovieByYearAndTitle(year,title);
-//                movies.addAll(movieList);
-//            }else{
-//                movieList = movieRepository.findAll();
-//                movieCount = Math.toIntExact(movieRepository.count());
-//                movies.addAll(movieList);
-//            }
-//            BeanUtils.copyProperties(movies,searchDto);
-//            searchResponseDto.setTotalResult(movieCount);
-//        });
-//        movieListResponseDto.add(searchDto);
-//        searchResponseDto.setMovieList(movieListResponseDto);
-//        searchResponseDto.setResponse("True");
-//        return apiMessages.successMessageWithData(searchResponseDto);
-//    }
-//    public ResponseDTO<?> searchMovie(String title, Integer year,Long limit) {
-//        List<MovieListResponseDto> movieListResponseDto = new ArrayList<>();
-//        List<Movie> movies = new ArrayList<>();
-//        MovieListResponseDto searchDto = new MovieListResponseDto();
-//        SearchResponseDto searchResponseDto = new SearchResponseDto();
-//        List<Movie> movieList;
-////        if(title != null && year == null){
-////          movieList = movieRepository.findByTitle(title);
-////        }else {
-//        log.info("year"+ year);
-//        log.info("title"+ title);
-//            movieList = movieRepository.findByTitle(title);
-//            log.info("mmmmmmmmmmooooooooooovielist" + movieList);
-////        }
-//        movieList.forEach(movie -> {
-////            searchDto.setTitle(movie.getTitle());
-////            searchDto.setYear(movie.getYear());
-////            searchDto.setPoster(movie.getPoster());
-////            searchDto.setType(movie.getType());
-////            searchDto.setImdbID(String.valueOf(movie.getId()));
-////            movies.addAll(movieList);
-//            BeanUtils.copyProperties(movie,searchDto);
-////            searchResponseDto.setTotalResult(movieCount);
-//        });
-//        movieListResponseDto.add(searchDto);
-//        searchResponseDto.setMovieList(movieListResponseDto);
-//        searchResponseDto.setResponse("True");
-//        return apiMessages.successMessageWithData(searchResponseDto);
-//    }
     public List<MovieListResponseDto> getMovies(SearchDto searchDto) {
         List<MovieListResponseDto> movieListResponseDtos = new ArrayList<>();
         List<Movie> movies = movieRepository.findAllByTitleAndYear(searchDto.getTitle(), searchDto.getYear(), searchDto.getLimit());
-        log.info("movies" +movies);
+        log.info("movies" + movies);
         movies.forEach(movie -> {
             MovieListResponseDto movieListResponseDto = MovieListResponseDto.builder()
                     .movieId(movie.getId())
@@ -163,15 +98,22 @@ public class MovieService {
             movieListResponseDtos.add(movieListResponseDto);
         });
         Long remainingLimit = searchDto.getLimit() - movies.size();
-        if (remainingLimit>0) {
+        if (remainingLimit > 0) {
             HttpHeaders headers = new HttpHeaders();
-            String url = "https://www.omdbapi.com/?s=Batman&page=2&apikey=a55e7284&";
+            String url = "https://www.omdbapi.com/";
             HttpEntity<String> entity = new HttpEntity<>(headers);
-            String uriWithParam = buildParam(searchDto, url, remainingLimit+1);
+            String uriWithParam = buildParam(searchDto, url);
             ResponseEntity<SearchResponseDto> exchange =
                     restTemplate.exchange(uriWithParam, HttpMethod.GET, entity, SearchResponseDto.class);
-            exchange.getBody().getMovieList().forEach(movieListResponseDto -> {
-                MovieListResponseDto movieListResponse =MovieListResponseDto.builder()
+
+            List<MovieListResponseDto> movieList = exchange.getBody().getMovieList();
+
+            Integer responseSize = movieList.size();
+            Integer index = 0;
+
+            while (remainingLimit > 0 && responseSize > 0) {
+                MovieListResponseDto movieListResponseDto = movieList.get(index);
+                MovieListResponseDto movieListResponse = MovieListResponseDto.builder()
                         .year(movieListResponseDto.getYear())
                         .imdbID(movieListResponseDto.getImdbID())
                         .poster(movieListResponseDto.getPoster())
@@ -179,26 +121,79 @@ public class MovieService {
                         .type(movieListResponseDto.getType())
                         .movieId(null)
                         .build();
+
                 movieListResponseDtos.add(movieListResponse);
-        });
-    }
+                remainingLimit--;
+                responseSize--;
+                index++;
+            }
+        }
         return movieListResponseDtos;
-}
-    public String buildParam(SearchDto searchDto, String url, Long remainingLimit){
+    }
+
+    public String buildParam(SearchDto searchDto, String url) {
 
         Map<String, String> params = new HashMap<>();
-        if(searchDto.getTitle() !=null) params.put("title", searchDto.getTitle());
-        if(remainingLimit !=null)
-            params.put("limit", remainingLimit.toString());
-        else
-            params.put("limit","10");
-        if(searchDto.getYear() !=null) params.put("year", searchDto.getYear().toString());
+        params.put("s", searchDto.getTitle());
+        if (searchDto.getYear() != null)
+            params.put("y", searchDto.getYear());
+        params.put("apikey", "a55e7284");
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
         for (Map.Entry<String, String> entry : params.entrySet()) {
             builder.queryParam(entry.getKey(), entry.getValue());
         }
+        return builder.toUriString();
+    }
 
+    public MovieDetailResponseDto getMovieDetailByImdbID(String imdbID) {
+        HttpHeaders headers = new HttpHeaders();
+        String url = "https://www.omdbapi.com/";
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        String uriWithParam = buildParamForMovieDetail(imdbID, url);
+        ResponseEntity<MovieDetailResponseDto> exchange =
+                restTemplate.exchange(uriWithParam, HttpMethod.GET, entity, MovieDetailResponseDto.class);
+
+        MovieDetailResponseDto movieDetail = exchange.getBody();
+        MovieDetailResponseDto movieDetailResponseDto = null;
+        if (movieDetail != null) {
+            movieDetailResponseDto = MovieDetailResponseDto.builder()
+                    .imdbID(movieDetail.getImdbID())
+                    .actors(movieDetail.getActors())
+                    .awards(movieDetail.getAwards())
+                    .boxOffice(movieDetail.getBoxOffice())
+                    .country(movieDetail.getCountry())
+                    .dvd(movieDetail.getDvd())
+                    .imdbRating(movieDetail.getImdbRating())
+                    .imdbVotes(movieDetail.getImdbVotes())
+                    .director(movieDetail.getDirector())
+                    .genre(movieDetail.getGenre())
+                    .language(movieDetail.getLanguage())
+                    .metaScore(movieDetail.getMetaScore())
+                    .response(movieDetail.getResponse())
+                    .plot(movieDetail.getPlot())
+                    .production(movieDetail.getProduction())
+                    .rated(movieDetail.getRated())
+                    .ratings(movieDetail.getRatings())
+                    .released(movieDetail.getReleased())
+                    .runtime(movieDetail.getRuntime())
+                    .type(movieDetail.getType())
+                    .poster(movieDetail.getPoster())
+                    .website(movieDetail.getWebsite())
+                    .build();
+        }
+        return movieDetailResponseDto;
+    }
+    public String buildParamForMovieDetail(String imdbID , String url) {
+
+        Map<String, String> params = new HashMap<>();
+        params.put("i", imdbID);
+        params.put("apikey", "a55e7284");
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            builder.queryParam(entry.getKey(), entry.getValue());
+        }
         return builder.toUriString();
     }
 }

@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class SearchDto {
     private String title;
-    private Integer year;
+    private String year;
     private Long limit;
 }

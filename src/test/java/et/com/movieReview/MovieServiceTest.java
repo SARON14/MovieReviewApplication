@@ -34,7 +34,7 @@ public class MovieServiceTest {
     public void testAddMovie_Success() throws IOException {
         MovieRequestDto payload = new MovieRequestDto();
         payload.setTitle("The Chosen");
-        payload.setYear(2023);
+        payload.setYear("2023");
         payload.setActors("mr x, miss y");
         payload.setDirector("Nathan");
         payload.setGenre("Drama");

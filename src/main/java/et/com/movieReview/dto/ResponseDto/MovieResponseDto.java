@@ -11,6 +11,11 @@ import lombok.*;
 @AllArgsConstructor
 @JsonIgnoreProperties
 public class MovieResponseDto {
+    private Long movieId;
     private String status;
-    private Long id;
+    private String title;
+    private String year;
+    private String type;
+    private String poster;
+
 }

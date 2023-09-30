@@ -20,7 +20,7 @@ public class Movie {
     private String title;
 
     @Column(name ="year")
-    private Integer year;
+    private String year;
 
     @Column(name="runTime")
     private String runTime;
