@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  psql-db:
+    image: postgres
+#    container_name: psql-db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=theater
+    ports:
+      - '5432:5432'
+
+  theater:
+#    container_name: theater_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://psql-db:5432/theater
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=1234
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    command:
+      - java -jar theater.jar
+    volumes:
+      - .:/theater
+    depends_on:
+      - psql-db
