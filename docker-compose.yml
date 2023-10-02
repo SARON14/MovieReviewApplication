@@ -18,14 +18,14 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '8080:8080'
+      - '8500:8500'
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://psql-db:5432/theater
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=1234
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     command:
-      - java -jar theater.jar
+      - java -jar /theater/target/movieReview-0.0.1-SNAPSHOT.jar
     volumes:
       - .:/theater
     depends_on:

@@ -2,7 +2,8 @@ package et.com.movieReview.controller;
 
 import et.com.movieReview.constants.Endpoints;
 import et.com.movieReview.dto.RequestDto.ReviewRequestDto;
-import et.com.movieReview.dto.ResponseDto.ResponseDTO;
+import et.com.movieReview.dto.ResponseDto.ReviewAddResponse;
+import et.com.movieReview.dto.ResponseDto.ReviewResponse;
 import et.com.movieReview.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -17,11 +18,11 @@ public class ReviewController {
     private static final String JSON = MediaType.APPLICATION_JSON_VALUE;
 
     @PostMapping(value = Endpoints.ADD_REVIEW,produces = JSON,consumes = JSON)
-    public ResponseDTO<?> addReview(@Valid @RequestBody ReviewRequestDto payload){
+    public ReviewAddResponse addReview(@Valid @RequestBody ReviewRequestDto payload){
         return reviewService.addReview(payload);
     }
     @GetMapping(value = Endpoints.GET_REVIEW_BY_USERID,produces = JSON)
-    public ResponseDTO<?> getReviewByUserId(@PathVariable Long userId){
+    public ReviewResponse getReviewByUserId(@PathVariable Long userId){
         return reviewService.getReviewByUserId(userId);
     }
 }

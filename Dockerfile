@@ -12,4 +12,4 @@ RUN ["mvn", "package"]
 RUN ["mvn", "verify"]
 
 #target/*.jar app.jar
-ENTRYPOINT ["java","-jar","/theater/target/theater-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java","-jar","/theater/target/movieReview-0.0.1-SNAPSHOT.jar"]

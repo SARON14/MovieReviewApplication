@@ -31,13 +31,13 @@ public class MovieService {
     private final MovieRepository movieRepository;
     private final RestTemplate restTemplate;
 
-    public ResponseDTO<?> addMovie(MovieRequestDto payload) {
+    public MovieAddResponse addMovie(MovieRequestDto payload) {
         try {
             String photoUrl = null;
             if (payload.getPoster() != null) {
                 photoUrl = saveUploadedFile(payload.getPoster());
             }
-            return apiMessages.successMessageWithData(movieRepository.save(Movie.builder()
+           Movie movie = Movie.builder()
                     .title(payload.getTitle())
                     .year(payload.getYear())
                     .runTime(payload.getRuntime())
@@ -49,25 +49,34 @@ public class MovieService {
                     .language(payload.getLanguage())
                     .type(payload.getType())
                     .poster(photoUrl)
-                    .build()));
+                    .build();
+            movieRepository.save(movie);
+            return MovieAddResponse.builder()
+                    .status("success")
+                    .movieId(movie.getId())
+                    .build();
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    public ResponseDTO<?> getMovieDetail(long movieId) {
+    public MovieResponseDto getMovieDetail(long movieId) {
         Optional<Movie> movie = movieRepository.findById(movieId);
         if (movie.isPresent()) {
-            return apiMessages.successMessageWithData(MovieResponseDto.builder()
+           MovieResponseDto movieResponseDto = MovieResponseDto.builder()
                     .status("Success")
                     .movieId(movie.get().getId())
                     .title(movie.get().getTitle())
                     .year(movie.get().getYear())
                     .type(movie.get().getType())
                     .poster(movie.get().getPoster())
-                    .build());
+                    .build();
+           return movieResponseDto;
         }
-        return apiMessages.errorMessage("movie not found");
+          MovieResponseDto movieResponseDto = MovieResponseDto.builder()
+                .status("failed")
+                .build();
+        return movieResponseDto;
     }
 
 

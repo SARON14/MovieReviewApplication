@@ -2,7 +2,7 @@ package et.com.movieReview.service;
 
 import et.com.movieReview.constants.ApiMessages;
 import et.com.movieReview.dto.RequestDto.ReviewRequestDto;
-import et.com.movieReview.dto.ResponseDto.ResponseDTO;
+import et.com.movieReview.dto.ResponseDto.ReviewAddResponse;
 import et.com.movieReview.dto.ResponseDto.ReviewResponse;
 import et.com.movieReview.dto.ResponseDto.ReviewResponseDto;
 import et.com.movieReview.exception.NotFoundException;
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -29,27 +28,33 @@ public class ReviewService {
     private final MovieRepository movieRepository;
     private final ApiMessages apiMessages = new ApiMessages();
 
-    public ResponseDTO<?> addReview(ReviewRequestDto payload) {
-        Optional<User> user = userRepository.findById(payload.getUserId());
-        Optional<Movie> movie = movieRepository.findById(payload.getMovieId());
-        if (user.isEmpty() && movie.isEmpty()){
-            return apiMessages.errorMessage("record doesn't exist");
+    public ReviewAddResponse addReview(ReviewRequestDto payload) {
+        User user = userRepository.findById(payload.getUserId())
+                .orElseThrow(()->new NotFoundException("User not found"));
+        Movie movie = movieRepository.findById(payload.getMovieId())
+                .orElseThrow(()->new NotFoundException("Movie not found"));
+        ReviewAddResponse reviewAddResponse = new ReviewAddResponse();
+        if (!validateRating(payload.getRating())) {
+            reviewAddResponse.setStatus("failed rating must be between 1 - 10");
+            reviewAddResponse.setReviewId(null);
+            return reviewAddResponse;
         }
-        if(!validateRating(payload.getRating())){
-            return apiMessages.errorMessage("rating must between 1 and 10");
-        }
-        return apiMessages.successMessageWithData(reviewRepository.save(Review.builder()
-                        .userId(payload.getUserId())
-                        .movieId(payload.getMovieId())
-                        .rating(payload.getRating())
-                        .comment(payload.getComment())
-                        .build()));
+        Review review = Review.builder()
+                .userId(payload.getUserId())
+                .movieId(payload.getMovieId())
+                .rating(payload.getRating())
+                .comment(payload.getComment())
+                .build();
+        reviewRepository.save(review);
+        reviewAddResponse.setStatus("success");
+        reviewAddResponse.setReviewId(review.getId());
+        return reviewAddResponse;
     }
     public boolean validateRating(int rating) {
         return rating >= 1 && rating <= 10;
     }
 
-    public ResponseDTO<?> getReviewByUserId(Long userId) {
+    public ReviewResponse getReviewByUserId(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(()-> new NotFoundException("user not found"));
         List<Review> reviewList = reviewRepository.findAllByUserId(userId);
@@ -63,11 +68,10 @@ public class ReviewService {
                     .build();
             reviewArrayList.add(reviewResponseDto);
         });
-        ReviewResponse reviewResponse = ReviewResponse.builder()
+        return ReviewResponse.builder()
                 .reviewList(reviewArrayList)
-                .totalResult(null)
+                .totalResult(reviewRepository.countAllByUserId(userId))
                 .status("success")
                 .build();
-        return apiMessages.successMessageWithData(reviewResponse);
     }
 }

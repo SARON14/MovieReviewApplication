@@ -3,7 +3,7 @@ package et.com.movieReview.controller;
 import et.com.movieReview.config.DateEntity;
 import et.com.movieReview.constants.Endpoints;
 import et.com.movieReview.dto.RequestDto.UserRequestDto;
-import et.com.movieReview.dto.ResponseDto.ResponseDTO;
+import et.com.movieReview.dto.ResponseDto.UserAddResponse;
 import et.com.movieReview.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -20,7 +20,7 @@ public class UserController extends DateEntity {
     private static final String JSON = MediaType.APPLICATION_JSON_VALUE;
 
     @PostMapping(value = Endpoints.ADD_USER,produces = JSON,consumes = JSON)
-    public ResponseDTO<?> addUser(@Valid @RequestBody UserRequestDto payload){
+    public UserAddResponse addUser(@Valid @RequestBody UserRequestDto payload){
         return customerService.addUser(payload);
     }
 }
