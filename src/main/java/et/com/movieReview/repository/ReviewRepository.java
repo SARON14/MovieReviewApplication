@@ -7,5 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ReviewRepository extends JpaRepository<Review,Long> {
     Page<Review> findAllByUserId(Long userId, Pageable pageable);
+    Integer countAllByUserId(Long userId);
 
 }
