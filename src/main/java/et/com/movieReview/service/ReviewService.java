@@ -14,6 +14,9 @@ import et.com.movieReview.repository.ReviewRepository;
 import et.com.movieReview.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -54,12 +57,13 @@ public class ReviewService {
         return rating >= 1 && rating <= 10;
     }
 
-    public ReviewResponse getReviewByUserId(Long userId) {
+    public ReviewResponse getReviewByUserId(Long userId,Integer page,Integer pageSize) {
         User user = userRepository.findById(userId)
                 .orElseThrow(()-> new NotFoundException("user not found"));
-        List<Review> reviewList = reviewRepository.findAllByUserId(userId);
+        Pageable pageable = PageRequest.of(page, pageSize);
+        Page<Review> reviewPage = reviewRepository.findAllByUserId(userId,pageable);
         List<ReviewResponseDto> reviewArrayList = new ArrayList<>();
-        reviewList.forEach(review -> {
+        reviewPage.forEach(review -> {
             ReviewResponseDto reviewResponseDto = ReviewResponseDto.builder()
                     .userId(review.getUserId())
                     .movieId(review.getMovieId())
@@ -70,7 +74,7 @@ public class ReviewService {
         });
         return ReviewResponse.builder()
                 .reviewList(reviewArrayList)
-                .totalResult(reviewRepository.countAllByUserId(userId))
+                .totalResult(reviewPage.getTotalElements())
                 .status("success")
                 .build();
     }

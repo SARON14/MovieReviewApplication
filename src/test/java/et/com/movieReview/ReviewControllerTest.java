@@ -35,8 +35,8 @@ public class ReviewControllerTest {
     }
     @Test
     void get_WhenGetReviewByUserId_thenReturnGetReviewByUserId(){
-        when(reviewService.getReviewByUserId(1L)).thenReturn(fixture.getReviewResponse());
-        ReviewResponse response = reviewController.getReviewByUserId(1L);
+        when(reviewService.getReviewByUserId(1L,1,1)).thenReturn(fixture.getReviewResponse());
+        ReviewResponse response = reviewController.getReviewByUserId(1L,1,1);
         assertEquals("success",response.getStatus());
     }
 
@@ -57,7 +57,7 @@ public class ReviewControllerTest {
         }
         ReviewResponse getReviewResponse(){
             return ReviewResponse.builder()
-                    .totalResult(1)
+                    .totalResult(1L)
                     .status("success")
                     .reviewList(new ArrayList<>(0))
                     .build();

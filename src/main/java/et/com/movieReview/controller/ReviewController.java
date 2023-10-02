@@ -22,7 +22,9 @@ public class ReviewController {
         return reviewService.addReview(payload);
     }
     @GetMapping(value = Endpoints.GET_REVIEW_BY_USERID,produces = JSON)
-    public ReviewResponse getReviewByUserId(@PathVariable Long userId){
-        return reviewService.getReviewByUserId(userId);
+    public ReviewResponse getReviewByUserId(@RequestParam Long userId,
+                                            @RequestParam Integer page,
+                                            @RequestParam Integer pageSize){
+        return reviewService.getReviewByUserId(userId,page,pageSize);
     }
 }
