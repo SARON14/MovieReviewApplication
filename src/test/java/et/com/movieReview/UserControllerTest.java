@@ -9,13 +9,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 public class UserControllerTest {
 
     @Mock
@@ -28,7 +26,7 @@ public class UserControllerTest {
 
     @Test
     void given_whenAddUser_thenReturnSuccess() {
-        when(userService.addUser(fixture.getUserRequestDto())).thenReturn(fixture.getUserAddResponse());
+        when(userService.addUser(any())).thenReturn(fixture.getUserAddResponse());
         UserAddResponse response = userController.addUser(fixture.getUserRequestDto());
         assertEquals("success", response.getStatus());
     }
